@@ -5,6 +5,9 @@ const config = {
 	kit: {
 		adapter: adapter()
 	},
+	paths: {
+		base: '/game_frontend',
+	  },
 };
 
 export default config;
