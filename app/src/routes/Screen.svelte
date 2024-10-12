@@ -1,10 +1,67 @@
 <script>
     import {onMount} from 'svelte';
 
+    let data;
+    let error;
+
+    let xValue;
+    let yValue;
+
     const mapSize = 20; // Rozmiar mapy
     let position = [mapSize / 2, mapSize / 2]; // Initial position
 
     onMount(() => {
+        // Main function to communicate with server
+        const serverRequest = async (/** @type {any} */ serverAddress, /** @type {any} */ fetchArgument) => {
+            try {
+                const response = await fetch(`http://${serverAddress}/${fetchArgument}`, {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    // console.log(response.json());
+                    return await response.json(); // Parse and set the data
+                } else {
+                    // error = 'Error: ' + response.statusText;
+                    return null;
+                }
+            } catch (err) {
+                error = 'Fetch failed: ' + (err instanceof Error ? err.message : 'Unknown error');
+            }
+        };
+
+        // Function to get player position
+        const getPlayerPosition = async () => {
+            const data = await serverRequest('127.0.0.1:4000', 'get_position');
+            if (data && 'x' in data && 'y' in data) {
+                // Update the outer position variable
+                position[0] = parseInt(String(data.x), 16);
+                position[1] = parseInt(String(data.y), 16);
+                setCellActive(position[0], position[1]);
+                console.log('Updated position:', position);
+                return position
+            } else {
+                console.error('x or y property is missing in the response data');
+            }
+        };
+
+        const movePlayerForward = () => {
+            console.log('move forward used');
+            serverRequest('127.0.0.1:4000', 'move_forward');
+        };
+        const movePlayerLeft = () => {
+            console.log('move left used');
+            serverRequest('127.0.0.1:4000', 'move_left');
+        };
+        const movePlayerDown = () => {
+            console.log('move down used');
+            serverRequest('127.0.0.1:4000', 'move_down');
+        };
+        const movePlayerRight = () => {
+            console.log('move right used');
+            serverRequest('127.0.0.1:4000', 'move_right');
+        };
+
         // Generate screen
         const screen = document.querySelector('.screen');
 
@@ -25,40 +82,17 @@
             activeCell?.classList.toggle('active');
         };
 
-        const useButtonUp = () => {
-            if (position[1] > 0) {
-                position[1]--;
-            }
-            console.log(position);
-            setCellActive(position[0], position[1]);
-        };
-        const useButtonLeft = () => {
-            if (position[0] > 0) {
-                position[0]--;
-            }
-            console.log(position);
-            setCellActive(position[0], position[1]);
-        };
-        const useButtonDown = () => {
-            if (position[1] < mapSize - 1) {
-                position[1]++;
-            }
-            console.log(position);
-            setCellActive(position[0], position[1]);
-        };
-        const useButtonRight = () => {
-            if (position[0] < mapSize - 1) {
-                position[0]++;
-            }
-            console.log(position);
-            setCellActive(position[0], position[1]);
-        };
+        setInterval(getPlayerPosition, 10000, '127.0.0.1:4000', 'get_position');
+        getPlayerPosition();
+        console.log('po funkci' + position);
+        console.log(activeCell)
+
 
         const buttons = document.querySelectorAll('.keyboard_btn');
-        buttons[0].addEventListener('click', useButtonUp);
-        buttons[1].addEventListener('click', useButtonLeft);
-        buttons[2].addEventListener('click', useButtonDown);
-        buttons[3].addEventListener('click', useButtonRight);
+        buttons[0].addEventListener('click', movePlayerForward);
+        buttons[1].addEventListener('click', movePlayerLeft);
+        buttons[2].addEventListener('click', movePlayerDown);
+        buttons[3].addEventListener('click', movePlayerRight);
     });
 </script>
 
