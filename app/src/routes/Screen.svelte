@@ -8,7 +8,6 @@
     let yValue;
 
     const mapSize = 20; // Rozmiar mapy
-    let position = [mapSize / 2, mapSize / 2]; // Initial position
 
     onMount(() => {
         // Main function to communicate with server
@@ -19,10 +18,8 @@
                 });
 
                 if (response.ok) {
-                    // console.log(response.json());
                     return await response.json(); // Parse and set the data
                 } else {
-                    // error = 'Error: ' + response.statusText;
                     return null;
                 }
             } catch (err) {
@@ -34,12 +31,9 @@
         const getPlayerPosition = async () => {
             const data = await serverRequest('127.0.0.1:4000', 'get_position');
             if (data && 'x' in data && 'y' in data) {
-                // Update the outer position variable
-                position[0] = parseInt(String(data.x), 16);
-                position[1] = parseInt(String(data.y), 16);
-                setCellActive(position[0], position[1]);
-                console.log('Updated position:', position);
-                return position
+                const positionX = parseInt(String(data.x), 16);
+                const positionY = parseInt(String(data.y), 16);
+                updatePlayerPosition(positionX, positionY);
             } else {
                 console.error('x or y property is missing in the response data');
             }
@@ -63,30 +57,21 @@
         };
 
         // Generate screen
-        const screen = document.querySelector('.screen');
-
-        for (let i = 0; i < mapSize * mapSize; i++) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.textContent = i.toString();
-            screen?.appendChild(cell);
+        const screen = /** @type {HTMLCanvasElement} */ (document.querySelector('.screen'));
+        const ctx = screen.getContext('2d');
+        if (!ctx) {
+            console.error('Failed to get 2D context from canvas.');
+            return;
         }
 
-        let activeCell = screen?.querySelector(`.cell:nth-child(${1 + position[0] + position[1] * mapSize})`);
-        activeCell?.classList.toggle('active');
-
-        // Function to visualise player move on screen
-        const setCellActive = (/** @type {number} */ x, /** @type {number} */ y) => {
-            activeCell?.classList.toggle('active');
-            activeCell = screen?.querySelector(`.cell:nth-child(${1 + x + y * mapSize})`);
-            activeCell?.classList.toggle('active');
+        const updatePlayerPosition = (/** @type {number} */ x, /** @type {number} */ y) => {
+            console.log('Plater position updated' + x + ' ' + y);
+            ctx.clearRect(0, 0, screen.width, screen.height);
+            ctx.fillRect(x * 10, y * 10, 10, 10);
         };
 
-        setInterval(getPlayerPosition, 10000, '127.0.0.1:4000', 'get_position');
-        getPlayerPosition();
-        console.log('po funkci' + position);
-        console.log(activeCell)
-
+        setInterval(getPlayerPosition, 5000, '127.0.0.1:4000', 'get_position');
+        // ctx.fillRect(10, 10, 10, 10);
 
         const buttons = document.querySelectorAll('.keyboard_btn');
         buttons[0].addEventListener('click', movePlayerForward);
@@ -96,14 +81,12 @@
     });
 </script>
 
-<div class="screen"></div>
-<!-- Kontener dla mapy -->
+<canvas class="screen" width="300" height="300"></canvas>
 <div class="keyboard">
     <button class="keyboard_btn keyboard_btn-up">Up</button>
     <button class="keyboard_btn keyboard_btn-left">Left</button>
     <button class="keyboard_btn keyboard_btn-down">Down</button>
     <button class="keyboard_btn keyboard_btn-right">Right</button>
-    <!-- <p>Sterowanie</p> -->
 </div>
 
 <style>

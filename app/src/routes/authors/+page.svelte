@@ -20,6 +20,11 @@
         </li>
 
         <li>
+            <a href="https://github.com/piotr-stec" class="list_address"><span></span> Piotr Stec</a>
+            <p>Project coordinate and good advice</p>
+        </li>
+
+        <li>
             <a href="https://github.com/puszkajakub" class="list_address"><span></span> Jakub Puszka</a>
             <p>Frontend</p>
         </li>
